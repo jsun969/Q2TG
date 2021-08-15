@@ -1,6 +1,6 @@
 import { createClient, MessageElem } from 'oicq';
 import TelegramBot, { InlineKeyboardMarkup, InputMediaPhoto } from 'node-telegram-bot-api';
-// import processQQMsg from './utils/processQQMessage';
+import processQQMsg from './utils/processQQMessage';
 import { addLink, getFile, getQQByTg, getTgByQQ, init as storageInit, rmLinkByQQMsgId } from './utils/storage';
 import config from './utils/config';
 import path from 'path';
@@ -23,100 +23,100 @@ export const tg = new TelegramBot(config.tgToken, { polling: true });
 
   qq.login(config.qqPasswd);
 
-  //   qq.on('message.group', async (data) => {
-  //     try {
-  //       const fwd = config.groups.find((e) => e.qq === data.group_id);
-  //       if (!fwd) return;
-  //       //   const msg = await processQQMsg(data.message, data.group_id);
-  //       const nick = data.sender.card ? data.sender.card : data.sender.nickname;
-  //       let ret: TelegramBot.Message;
-  //   if (msg.image.length === 1) {
-  //     try {
-  //       const bufImg: Buffer = (
-  //         await axios.get(msg.image[0], {
-  //           responseType: 'arraybuffer',
-  //         })
-  //       ).data;
-  //       const type = await fileType.fromBuffer(bufImg);
-  //       if (type.ext === 'gif')
-  //         ret = await tg.sendAnimation(fwd.tg, bufImg, {
-  //           caption: nick + '：' + (msg.content ? '\n' + msg.content : ''),
-  //           reply_to_message_id: msg.replyTgId,
-  //         });
-  //       else
-  //         ret = await tg.sendPhoto(fwd.tg, bufImg, {
-  //           caption: nick + '：' + (msg.content ? '\n' + msg.content : ''),
-  //           reply_to_message_id: msg.replyTgId,
-  //         });
-  //     } catch (e) {
-  //       //alternative sending way
-  //       ret = await tg.sendPhoto(fwd.tg, msg.image[0], {
-  //         caption: nick + '：' + (msg.content ? '\n' + msg.content : ''),
-  //         reply_to_message_id: msg.replyTgId,
-  //       });
-  //       console.log(e);
-  //     }
-  //   } else if (msg.image.length > 1) {
-  //     const group: InputMediaPhoto[] = [];
-  //     let caption = nick + '：' + (msg.content ? '\n' + msg.content : '');
-  //     for (const media of msg.image) {
-  //       group.push({
-  //         media,
-  //         type: 'photo',
-  //         caption,
-  //       });
-  //       caption = undefined;
-  //     }
-  //     ret = await tg.sendMediaGroup(fwd.tg, group, {
-  //       reply_to_message_id: msg.replyTgId,
-  //     });
-  //   } else if (msg.video) {
-  //     try {
-  //       const bufVid: Buffer = (
-  //         await axios.get(msg.video, {
-  //           responseType: 'arraybuffer',
-  //         })
-  //       ).data;
-  //       ret = await tg.sendVideo(fwd.tg, bufVid, {
-  //         caption: nick + '：',
-  //         reply_to_message_id: msg.replyTgId,
-  //       });
-  //     } catch (e) {
-  //       ret = await tg.sendMessage(fwd.tg, nick + '：\n' + '[下载失败的视频]', {
-  //         reply_to_message_id: msg.replyTgId,
-  //       });
-  //       console.log(e);
-  //     }
-  //   } else if (msg.audio) {
-  //     ret = await tg.sendVoice(fwd.tg, msg.audio, {
-  //       caption: nick + '：',
-  //       reply_to_message_id: msg.replyTgId,
-  //     });
-  //   } else {
-  //     let kbd: InlineKeyboardMarkup;
-  //     if (msg.file) {
-  //       kbd = {
-  //         inline_keyboard: [
-  //           [
-  //             {
-  //               text: '获取下载链接',
-  //               url: 'https://t.me/' + me.username + '?start=' + msg.file,
-  //             },
-  //           ],
-  //         ],
-  //       };
-  //     }
-  //     ret = await tg.sendMessage(fwd.tg, nick + '：\n' + msg.content, {
-  //       reply_to_message_id: msg.replyTgId,
-  //       reply_markup: kbd,
-  //     });
-  //   }
-  //保存 id 对应关系
-  //       await addLink(data.message_id, ret.message_id, fwd.tg);
-  //     } catch (e) {
-  //       console.log(e);
-  //     }
-  //   });
+  qq.on('message.group', async (data) => {
+    try {
+      const fwd = config.groups.find((e) => e.qq === data.group_id);
+      if (!fwd) return;
+      const msg = await processQQMsg(data.message, data.group_id);
+      const nick = data.sender.card ? data.sender.card : data.sender.nickname;
+      let ret: TelegramBot.Message;
+      if (msg.image.length === 1) {
+        try {
+          const bufImg: Buffer = (
+            await axios.get(msg.image[0], {
+              responseType: 'arraybuffer',
+            })
+          ).data;
+          const type = await fileType.fromBuffer(bufImg);
+          if (type.ext === 'gif')
+            ret = await tg.sendAnimation(fwd.tg, bufImg, {
+              caption: nick + '：' + (msg.content ? '\n' + msg.content : ''),
+              reply_to_message_id: msg.replyTgId,
+            });
+          else
+            ret = await tg.sendPhoto(fwd.tg, bufImg, {
+              caption: nick + '：' + (msg.content ? '\n' + msg.content : ''),
+              reply_to_message_id: msg.replyTgId,
+            });
+        } catch (e) {
+          //alternative sending way
+          ret = await tg.sendPhoto(fwd.tg, msg.image[0], {
+            caption: nick + '：' + (msg.content ? '\n' + msg.content : ''),
+            reply_to_message_id: msg.replyTgId,
+          });
+          console.log(e);
+        }
+      } else if (msg.image.length > 1) {
+        const group: InputMediaPhoto[] = [];
+        let caption = nick + '：' + (msg.content ? '\n' + msg.content : '');
+        for (const media of msg.image) {
+          group.push({
+            media,
+            type: 'photo',
+            caption,
+          });
+          caption = undefined;
+        }
+        ret = await tg.sendMediaGroup(fwd.tg, group, {
+          reply_to_message_id: msg.replyTgId,
+        });
+      } else if (msg.video) {
+        try {
+          const bufVid: Buffer = (
+            await axios.get(msg.video, {
+              responseType: 'arraybuffer',
+            })
+          ).data;
+          ret = await tg.sendVideo(fwd.tg, bufVid, {
+            caption: nick + '：',
+            reply_to_message_id: msg.replyTgId,
+          });
+        } catch (e) {
+          ret = await tg.sendMessage(fwd.tg, nick + '：\n' + '[下载失败的视频]', {
+            reply_to_message_id: msg.replyTgId,
+          });
+          console.log(e);
+        }
+      } else if (msg.audio) {
+        ret = await tg.sendVoice(fwd.tg, msg.audio, {
+          caption: nick + '：',
+          reply_to_message_id: msg.replyTgId,
+        });
+      } else {
+        let kbd: InlineKeyboardMarkup;
+        if (msg.file) {
+          kbd = {
+            inline_keyboard: [
+              [
+                {
+                  text: '获取下载链接',
+                  url: 'https://t.me/' + me.username + '?start=' + msg.file,
+                },
+              ],
+            ],
+          };
+        }
+        ret = await tg.sendMessage(fwd.tg, nick + '：\n' + msg.content, {
+          reply_to_message_id: msg.replyTgId,
+          reply_markup: kbd,
+        });
+      }
+      //   保存 id 对应关系
+      await addLink(data.message_id, ret.message_id, fwd.tg);
+    } catch (e) {
+      console.log(e);
+    }
+  });
 
   //   QQ撤回消息
   //   qq.on('notice.group.recall', async (data) => {
@@ -248,9 +248,9 @@ export const tg = new TelegramBot(config.tgToken, { polling: true });
             data: JSON.stringify(mirai, undefined, 0),
           },
         });
-        const ret = await qq.sendGroupMsg(fwd.qq, chain);
-        if (ret.data) await addLink(ret.data.message_id, msg.message_id, fwd.tg);
-        else console.log(ret.error);
+        // const ret = await qq.sendGroupMsg(fwd.qq, chain);
+        // if (ret.data) await addLink(ret.data.message_id, msg.message_id, fwd.tg);
+        // else console.log(ret.error);
         await cleanup();
       }
     } catch (e) {
